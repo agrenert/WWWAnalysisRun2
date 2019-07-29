@@ -427,6 +427,9 @@ class wwwtree {
   vector<ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float> > > *jets_dn_p4_;
   TBranch *jets_dn_p4_branch;
   bool     jets_dn_p4_isLoaded;
+  vector<float> *jets_btag_score_;
+  TBranch *jets_btag_score_branch;
+  bool     jets_btag_score_isLoaded;
   vector<float> *jets_csv_;
   TBranch *jets_csv_branch;
   bool     jets_csv_isLoaded;
@@ -1835,6 +1838,7 @@ void LoadAllBranches();
   const vector<ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float> > > &jets_p4();
   const vector<ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float> > > &jets_up_p4();
   const vector<ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float> > > &jets_dn_p4();
+  const vector<float> &jets_btag_score();
   const vector<float> &jets_csv();
   const vector<float> &jets_up_csv();
   const vector<float> &jets_dn_csv();
@@ -2402,6 +2406,7 @@ namespace taswww {
   const vector<ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float> > > &jets_p4();
   const vector<ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float> > > &jets_up_p4();
   const vector<ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float> > > &jets_dn_p4();
+  const vector<float> &jets_btag_score();
   const vector<float> &jets_csv();
   const vector<float> &jets_up_csv();
   const vector<float> &jets_dn_csv();
