@@ -351,6 +351,8 @@ void wwwtree::Init(TTree *tree) {
   if (lbnt_mu_coneCorrPt_branch) lbnt_mu_coneCorrPt_branch->SetAddress(&lbnt_mu_coneCorrPt_);
   lbnt_mu_abseta_branch = tree->GetBranch("lbnt_mu_abseta");
   if (lbnt_mu_abseta_branch) lbnt_mu_abseta_branch->SetAddress(&lbnt_mu_abseta_);
+  jets_btag_score_branch = tree->GetBranch("jets_btag_score");
+  if (jets_btag_score_branch) jets_btag_score_branch->SetAddress(&jets_btag_score_);
   jets_csv_branch = tree->GetBranch("jets_csv");
   if (jets_csv_branch) jets_csv_branch->SetAddress(&jets_csv_);
   jets_up_csv_branch = tree->GetBranch("jets_up_csv");
@@ -1263,6 +1265,7 @@ void wwwtree::GetEntry(unsigned int idx) {
   jets_p4_isLoaded = false;
   jets_up_p4_isLoaded = false;
   jets_dn_p4_isLoaded = false;
+  jets_btag_score_isLoaded = false;
   jets_csv_isLoaded = false;
   jets_up_csv_isLoaded = false;
   jets_dn_csv_isLoaded = false;
@@ -1825,6 +1828,7 @@ void wwwtree::LoadAllBranches() {
   if (jets_p4_branch != 0) jets_p4();
   if (jets_up_p4_branch != 0) jets_up_p4();
   if (jets_dn_p4_branch != 0) jets_dn_p4();
+  if (jets_btag_score_branch != 0) jets_btag_score();
   if (jets_csv_branch != 0) jets_csv();
   if (jets_up_csv_branch != 0) jets_up_csv();
   if (jets_dn_csv_branch != 0) jets_dn_csv();
@@ -4003,6 +4007,19 @@ const vector<ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float> > > &wwwtree
     jets_dn_p4_isLoaded = true;
   }
   return *jets_dn_p4_;
+}
+
+const vector<float> &wwwtree::jets_btag_score() {
+  if (not jets_btag_score_isLoaded) {
+    if (jets_btag_score_branch != 0) {
+      jets_btag_score_branch->GetEntry(index);
+    } else {
+      printf("branch jets_btag_score_branch does not exist!\n");
+      exit(1);
+    }
+    jets_btag_score_isLoaded = true;
+  }
+  return *jets_btag_score_;
 }
 
 const vector<float> &wwwtree::jets_csv() {
@@ -9663,6 +9680,7 @@ const float &lbnt_mu_abseta() { return www.lbnt_mu_abseta(); }
 const vector<ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float> > > &jets_p4() { return www.jets_p4(); }
 const vector<ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float> > > &jets_up_p4() { return www.jets_up_p4(); }
 const vector<ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float> > > &jets_dn_p4() { return www.jets_dn_p4(); }
+const vector<float> &jets_btag_score() { return www.jets_btag_score(); }
 const vector<float> &jets_csv() { return www.jets_csv(); }
 const vector<float> &jets_up_csv() { return www.jets_up_csv(); }
 const vector<float> &jets_dn_csv() { return www.jets_dn_csv(); }
