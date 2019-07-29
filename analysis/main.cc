@@ -797,7 +797,82 @@ int main(int argc, char** argv)
                         rtn.push_back(www.lep_MVA()[ilep]);
                 return rtn;
             });
+    //ana.histograms.addVecHistogram("jets_csv", 180 , 0. , 10  , [&]() { return www.jets_csv(); });
+    ana.histograms.addHistogram("jets_btag_score1", 100, 0. , 1   , [&]()
+	    {
+	      float max_btag_score = 0;
+	      for (unsigned int ijet = 0; ijet < www.jets_btag_score().size(); ijet++)
+		{
+		  if (www.jets_btag_score()[ijet] > max_btag_score)
+		    max_btag_score = www.jets_btag_score()[ijet];
+		}
+	      return max_btag_score;
+	    });
 
+    ana.histograms.addHistogram("Mbb", 10, 0. , 300 , [&]()
+	    {
+	      int leading_btag_index     = -1;
+	      int sub_leading_btag_index = -1;
+	      float first_btag_score     =  0;
+	      float second_btag_score    =  0;
+	      float current_btag_score; // for use in loop
+	      
+	      for (unsigned int ijet = 0; ijet < www.jets_btag_score().size(); ijet++)
+		{
+		  current_btag_score = www.jets_btag_score()[ijet];
+		  if (current_btag_score > second_btag_score && current_btag_score > first_btag_score)
+		    {
+		      second_btag_score = first_btag_score;
+		      sub_leading_btag_index = leading_btag_index;
+		      first_btag_score = current_btag_score;
+		      leading_btag_index = ijet;
+		    }
+		  else if (current_btag_score > second_btag_score && current_btag_score <= first_btag_score)
+		    {
+		      second_btag_score = current_btag_score;
+		      sub_leading_btag_index = ijet;
+		    }
+		  else if (current_btag_score == second_btag_score && current_btag_score < first_btag_score)
+		    {
+		      if (www.jets_p4()[ijet].pt() > www.jets_p4()[sub_leading_btag_index].pt())
+			{
+			  second_btag_score = current_btag_score;
+			  sub_leading_btag_index = ijet;
+			}
+		      continue;
+		    }
+		  else if (current_btag_score == second_btag_score && current_btag_score == first_btag_score)
+		    {
+		      if (www.jets_p4()[ijet].pt() > www.jets_p4()[sub_leading_btag_index].pt() || www.jets_p4()[ijet].pt() > www.jets_p4()[leading_btag_index].pt())
+			{
+			  if (www.jets_p4()[sub_leading_btag_index].pt() > www.jets_p4()[leading_btag_index].pt())
+			    leading_btag_index = ijet;
+			  else
+			    sub_leading_btag_index = ijet;
+	      
+			}
+		      continue;
+		    }
+		  else
+		    continue;
+		}
+
+	      float Mbb = www.jets_p4()[leading_btag_index].mass() + www.jets_p4()[sub_leading_btag_index].mass();
+	      if (input.is_data && Mbb > 90)
+		std::cout << Mbb << "\t";
+	      return Mbb;
+	    }); 
+	
+    ana.histograms.addHistogram("Mjets", 10 , 0. , 300 , [&]() 
+	    {
+	      float mass = 0;
+	      int amount_of_jets = www.jets_p4().size();
+	      for (int jet = 0; jet < amount_of_jets; jet++)
+		{
+		  mass += www.jets_p4()[jet].mass();
+		}
+	      return mass;
+	    });
 
 //********************************************************************************
 //
@@ -854,6 +929,11 @@ int main(int argc, char** argv)
     // Trilep selection for signal region plots
     ana.cutflow.getCut("CutTrigger"); // Retrieve the CutTrigger and add CutARDilep to the CutTrigger node
     ana.cutflow.addCutToLastActiveCut("CutARTrilep", Lambdas::CutARTrilep, UNITY); // No lepton scale factors applied for the application region. (no proper lepton scale factors for loose leptons derived)
+    
+    // Custom WWjjH signal region cuts
+    ana.cutflow.getCut("CutTrigger");
+    ana.cutflow.addCutToLastActiveCut("CutSRSSDilepDijets", Lambdas::CutSRDilep, UNITY); // Ensures that the cut only has 2 leptons
+
 
     auto nominal_analysis = [&]()
     {
@@ -865,6 +945,46 @@ int main(int argc, char** argv)
         //
         //************************************************************************************************************************************************************************************************
 
+        // WWjjH electron-electron cut
+        ana.cutflow.getCut("CutSRSSDilepDijets");
+	ana.cutflow.addCutToLastActiveCut("SRSSeeDD"           , Lambdas::isSRSSeeChannel                                     , UNITY);
+     // ana.cutflow.addCutToLastActiveCut("SRSSeeZVetoDD"      , Lambdas::ZVetoSS                                             , UNITY);
+        ana.cutflow.addCutToLastActiveCut("SRSSeePreSelDD"     , Lambdas::SSPreSelection  (Variation::JES, Variation::Nominal, 1), Lambdas::BTagScaleFactor);
+        ana.cutflow.addCutToLastActiveCut("SRSSeeNj2DD"        , Lambdas::TwoCenJet30     (Variation::JES, Variation::Nominal), UNITY);
+     // ana.cutflow.addCutToLastActiveCut("SRSSeeKinSelDD"     , Lambdas::SRSSeeSelection (Variation::JES, Variation::Nominal), UNITY);
+     // ana.cutflow.addCutToLastActiveCut("SRSSeeLowDetajjDD"  , Lambdas::LowDEtajj       (Variation::JES, Variation::Nominal), UNITY);
+        ana.cutflow.addCutToLastActiveCut("SRSSeeHighMjjDD"    , Lambdas::HighMjj         (Variation::JES, Variation::Nominal), UNITY);
+     // ana.cutflow.addCutToLastActiveCut("SRSSeeMjjInDD"      , Lambdas::MjjIn           (Variation::JES, Variation::Nominal), UNITY);
+	ana.cutflow.addCutToLastActiveCut("SRSSeeNb2DD"        , Lambdas::TwoBJets        (Variation::JES, Variation::Nominal), UNITY);
+	ana.cutflow.addCutToLastActiveCut("SRSSeelljjbbFullDD" , UNITY                                                        , UNITY);
+
+	// WWjjH electron-muon cut
+        ana.cutflow.getCut("CutSRSSDilepDijets");
+        ana.cutflow.addCutToLastActiveCut("SRSSemDD"           , Lambdas::isSRSSemChannel                                     , UNITY);
+     // ana.cutflow.addCutToLastActiveCut("SRSSemZVetoDD"      , Lambdas::ZVetoSS                                             , UNITY);
+        ana.cutflow.addCutToLastActiveCut("SRSSemPreSelDD"     , Lambdas::SSPreSelection  (Variation::JES, Variation::Nominal, 1), Lambdas::BTagScaleFactor);
+        ana.cutflow.addCutToLastActiveCut("SRSSemNj2DD"        , Lambdas::TwoCenJet30     (Variation::JES, Variation::Nominal), UNITY);
+     // ana.cutflow.addCutToLastActiveCut("SRSSemKinSelDD"     , Lambdas::SRSSeeSelection (Variation::JES, Variation::Nominal), UNITY);  
+     // ana.cutflow.addCutToLastActiveCut("SRSSemLowDetajjDD"  , Lambdas::LowDEtajj       (Variation::JES, Variation::Nominal), UNITY);
+        ana.cutflow.addCutToLastActiveCut("SRSSemHighMjjDD"    , Lambdas::HighMjj         (Variation::JES, Variation::Nominal), UNITY);
+     // ana.cutflow.addCutToLastActiveCut("SRSSemMjjInDD"      , Lambdas::MjjIn           (Variation::JES, Variation::Nominal), UNITY); 
+        ana.cutflow.addCutToLastActiveCut("SRSSemNb2DD"        , Lambdas::TwoBJets        (Variation::JES, Variation::Nominal), UNITY);
+        ana.cutflow.addCutToLastActiveCut("SRSSemlljjbbFullDD" , UNITY                                                        , UNITY);        
+	
+	// WWjjH muon-muon cut
+	ana.cutflow.getCut("CutSRSSDilepDijets");
+        ana.cutflow.addCutToLastActiveCut("SRSSmmDD"           , Lambdas::isSRSSmmChannel                                     , UNITY);
+     // ana.cutflow.addCutToLastActiveCut("SRSSmmZVetoDD"      , Lambdas::ZVetoSS                                             , UNITY); 
+        ana.cutflow.addCutToLastActiveCut("SRSSmmPreSelDD"     , Lambdas::SSPreSelection  (Variation::JES, Variation::Nominal, 1), Lambdas::BTagScaleFactor);
+        ana.cutflow.addCutToLastActiveCut("SRSSmmNj2DD"        , Lambdas::TwoCenJet30     (Variation::JES, Variation::Nominal), UNITY);
+     // ana.cutflow.addCutToLastActiveCut("SRSSmmKinSelDD"     , Lambdas::SRSSeeSelection (Variation::JES, Variation::Nominal), UNITY); 
+     // ana.cutflow.addCutToLastActiveCut("SRSSmmLowDetajjDD"  , Lambdas::LowDEtajj       (Variation::JES, Variation::Nominal), UNITY);   
+        ana.cutflow.addCutToLastActiveCut("SRSSmmHighMjjDD"    , Lambdas::HighMjj         (Variation::JES, Variation::Nominal), UNITY);
+     // ana.cutflow.addCutToLastActiveCut("SRSSmmMjjInDD"      , Lambdas::MjjIn           (Variation::JES, Variation::Nominal), UNITY);   
+        ana.cutflow.addCutToLastActiveCut("SRSSmmNb2DD"        , Lambdas::TwoBJets        (Variation::JES, Variation::Nominal), UNITY);
+        ana.cutflow.addCutToLastActiveCut("SRSSmmlljjbbFullDD" , UNITY                                                        , UNITY);
+
+//=========================================================================================================================================================================|
         ana.cutflow.getCut("CutSRDilep");
         ana.cutflow.addCutToLastActiveCut("SRSSee"           , Lambdas::isSRSSeeChannel                                     , UNITY);
         ana.cutflow.addCutToLastActiveCut("SRSSeeZVeto"      , Lambdas::ZVetoSS                                             , UNITY);
@@ -1471,6 +1591,7 @@ int main(int argc, char** argv)
         // Book histograms
         if (ana.do_histograms)
         {
+  	    ana.cutflow.bookHistogramsForCutAndBelow(ana.histograms, "CutSRSSDilepDijets");
             ana.cutflow.bookHistogramsForCutAndBelow(ana.histograms, "CutSRDilep");
             ana.cutflow.bookHistogramsForCutAndBelow(ana.histograms, "CutSRTrilep");
             ana.cutflow.bookHistogramsForCutAndBelow(ana.histograms, "CutWZCRTrilep");
@@ -1706,4 +1827,3 @@ int main(int argc, char** argv)
     ana.cutflow.saveOutput();
 
 }
-
