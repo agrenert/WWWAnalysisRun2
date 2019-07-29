@@ -155,8 +155,8 @@ std::function<float()> Lambdas::PreliminarySelection = [&]()
         presel &= (www.Flag_AllEventFilters() >  0);
         presel &= (www.vetophoton()           == 0);
         presel &= (www.evt_passgoodrunlist()  >  0);
-        presel &= (www.nVlep()                >= 2);
-        presel &= (www.nLlep()                >= 2);
+        presel &= (www.nVlep()                >= 2); // changed so its equal to 2
+        presel &= (www.nLlep()                >= 2); // changed so its equal to 2
         return presel;
     };
 
@@ -1001,6 +1001,30 @@ std::function<float()> Lambdas::LowMjj(Variation::ExpSyst expsyst, Variation::Va
             [&]() { return (www.MjjL_jerdn()< 400.); },
             [&]() { return (www.MjjL_jer()< 400.); }
             );
+}
+
+std::function<float()> Lambdas::TwoBJets(Variation::ExpSyst expsyst, Variation::Var var)
+{
+    return  jetVar(expsyst, var,
+	     [&]() { return (www.nb_up()==2); },
+	     [&]() { return (www.nb_dn()==2); },
+	     [&]() { return (www.nb()==2); },
+	     [&]() { return (www.nb_jerup()==2); },
+	     [&]() { return (www.nb_jerdn()==2); },
+	     [&]() { return (www.nb_jer()==2); }
+	     );
+}
+
+std::function<float()> Lambdas::HighMjj(Variation::ExpSyst expsyst, Variation::Var var)
+{
+  return jetVar(expsyst, var,
+		[&]() { return (www.MjjL_up()> 500.); },
+		[&]() { return (www.MjjL_up()> 500.); },
+		[&]() { return (www.MjjL()> 500.); },
+		[&]() { return (www.MjjL_jerup()> 500.); },
+		[&]() { return (www.MjjL_jerdn()> 500.); },
+		[&]() { return (www.MjjL_jer()> 500.); }
+		);
 }
 
 std::function<float()> Lambdas::MjjIn(Variation::ExpSyst expsyst, Variation::Var var)
