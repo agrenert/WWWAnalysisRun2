@@ -154,6 +154,8 @@ namespace Lambdas
     std::function<float()> TwoCenJet30(Variation::ExpSyst expsyst=Variation::JES, Variation::Var var=Variation::Nominal); // Two central jets above 30 GeV 
     std::function<float()> LowDEtajj(Variation::ExpSyst expsyst=Variation::JES, Variation::Var var=Variation::Nominal); // Low Detajj
     std::function<float()> LowMjj(Variation::ExpSyst expsyst=Variation::JES, Variation::Var var=Variation::Nominal); // Low Mjj
+    std::function<float()> HighMjj(Variation::ExpSyst expsyst=Variation::JES, Variation::Var var=Variation::Nominal); // High Mjj
+    std::function<float()> TwoBJets(Variation::ExpSyst expsyst=Variation::JES, Variation::Var var=Variation::Nominal);
 
     std::function<float()> MjjIn(Variation::ExpSyst expsyst=Variation::JES, Variation::Var var=Variation::Nominal); // Mjj-in ee
     std::function<float()> MjjOut(Variation::ExpSyst expsyst=Variation::JES, Variation::Var var=Variation::Nominal); // Mjj-out ee
