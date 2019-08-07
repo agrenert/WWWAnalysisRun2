@@ -26,6 +26,9 @@ public:
     // input file is VH sample?
     bool is_vh;
 
+    // input file is vbf signal sample?
+    bool is_vbf;
+
     // if we're running over t_www tree with is_www or is_vh then these events are signal
     bool is_sig;
 
