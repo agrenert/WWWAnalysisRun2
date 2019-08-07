@@ -1027,6 +1027,85 @@ std::function<float()> Lambdas::HighMjj(Variation::ExpSyst expsyst, Variation::V
 		);
 }
 
+float Lambdas::GetMbb()
+{
+	int leading_btag_index     = -1;
+	int sub_leading_btag_index = -1;
+	GetBJetsIndex(leading_btag_index, sub_leading_btag_index);
+	if (leading_btag_index == -1 || sub_leading_btag_index == -1)
+	  {
+	    std::cout << "No B Jets in Event" << endl;
+	    return -999;
+	  }
+	else
+	  {
+	    float Mbb = www.jets_p4()[leading_btag_index].mass() + www.jets_p4()[sub_leading_btag_index].mass();
+	    return Mbb;
+	  }
+}
+
+void Lambdas::GetBJetsIndex(int &leading_index, int &sub_leading_index)
+{
+  int leading_btag_index     = -1;
+  int sub_leading_btag_index = -1;
+  float first_btag_score     =  0;
+  float second_btag_score    =  0;
+  float current_btag_score; // for use in loop                                                                                                                               
+
+  for (unsigned int ijet = 0; ijet < www.jets_btag_score().size(); ijet++)
+    {
+      current_btag_score = www.jets_btag_score()[ijet];
+      if (current_btag_score > second_btag_score && current_btag_score > first_btag_score)
+	{
+	  second_btag_score = first_btag_score;
+	  sub_leading_btag_index = leading_btag_index;
+	  first_btag_score = current_btag_score;
+	  leading_btag_index = ijet;
+	}
+      else if (current_btag_score > second_btag_score && current_btag_score <= first_btag_score)
+	{
+	  second_btag_score = current_btag_score;
+	  sub_leading_btag_index = ijet;
+	}
+      else if (current_btag_score == second_btag_score && current_btag_score < first_btag_score)
+	{
+	  if (www.jets_p4()[ijet].pt() > www.jets_p4()[sub_leading_btag_index].pt())
+	    {
+	      second_btag_score = current_btag_score;
+	      sub_leading_btag_index = ijet;
+	    }
+	  continue;
+	}
+      else if (current_btag_score == second_btag_score && current_btag_score == first_btag_score)
+	{
+	  if (www.jets_p4()[ijet].pt() > www.jets_p4()[sub_leading_btag_index].pt() || www.jets_p4()[ijet].pt() > www.jets_p4()[leading_btag_index].pt())
+	    {
+	      if (www.jets_p4()[sub_leading_btag_index].pt() > www.jets_p4()[leading_btag_index].pt())
+		leading_btag_index = ijet;
+	      else
+		sub_leading_btag_index = ijet;
+
+	    }
+	  continue;
+	}
+      else
+	continue;
+    }
+  
+  
+  
+  if (sub_leading_btag_index < 0 || leading_btag_index < 0)
+    {
+      leading_index = -1;
+      sub_leading_index = -1;
+    }
+  else
+    {
+      leading_index = leading_btag_index;
+      sub_leading_index = sub_leading_btag_index;
+    }
+}
+
 std::function<float()> Lambdas::MjjIn(Variation::ExpSyst expsyst, Variation::Var var)
 {
     return jetVar(expsyst, var, 
