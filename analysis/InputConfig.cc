@@ -33,8 +33,14 @@ void InputConfig::determine_input_settings(TString file_path, TString tree_name)
     else
         is_data = false;
 
+    // if the first 4 letters are "vbf_"
+    if (TString(file_name(0, 4)).EqualTo("vbf_"))
+        is_vbf = true;
+    else
+        is_vbf = false;
+
     // If the first three letters are "vh_" that's our signal sample (but it could be a bkg events if not in t_www tree)
-    if ((is_vh or is_www) and tree_name.EqualTo("t_www"))
+    if (is_vbf and tree_name.EqualTo("t_ss"))
         is_sig = true;
     else
         is_sig = false;
