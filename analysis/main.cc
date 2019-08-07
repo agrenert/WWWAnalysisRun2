@@ -859,9 +859,40 @@ int main(int argc, char** argv)
 
 	      float Mbb = www.jets_p4()[leading_btag_index].mass() + www.jets_p4()[sub_leading_btag_index].mass();
 	      if (input.is_data && Mbb > 90)
-		std::cout << Mbb << "\t";
+		std::cout << Mbb << endl;
 	      return Mbb;
 	    }); 
+
+    ana.histograms.addHistogram("bjet_pt1", 180, 0., 300, [&]()
+	    {
+	      int leading_btag_index;
+	      int sub_leading_btag_index;
+	      Lambdas::GetBJetsIndex(leading_btag_index, sub_leading_btag_index);
+
+	      return www.jets_p4()[leading_btag_index].pt();
+	    });
+
+    ana.histograms.addHistogram("bjet_pt2", 180, 0., 300, [&]()
+	    {
+	      int leading_btag_index;
+	      int sub_leading_btag_index;
+	      Lambdas::GetBJetsIndex(leading_btag_index, sub_leading_btag_index);
+
+	      return www.jets_p4()[sub_leading_btag_index].pt();
+	    });
+
+    ana.histograms.addHistogram("DRbb", 20, 0, 1, [&]()
+	    {
+	      int leading_btag_index;
+	      int sub_leading_btag_index;
+	      Lambdas::GetBJetsIndex(leading_btag_index, sub_leading_btag_index);
+	      
+	      float deltaPhi = www.jets_p4()[leading_btag_index].phi() - www.jets_p4()[sub_leading_btag_index].phi();
+	      float deltaEta = www.jets_p4()[leading_btag_index].eta() - www.jets_p4()[sub_leading_btag_index].eta();
+
+	      float deltaR   = sqrt(pow(deltaEta, 2.0) + pow(deltaPhi, 2.0));
+	      return deltaR;
+	    });
 	
     ana.histograms.addHistogram("Mjets", 10 , 0. , 300 , [&]() 
 	    {
@@ -1718,7 +1749,13 @@ int main(int argc, char** argv)
         // This magic "fill()" function will now go through all the cut nodes in the RooUtil::Cutflow and evaluate whether it passes the cut or not
         // And also fill histograms for all the booked histograms and fill all the book cutflows
         ana.cutflow.fill();
-
+	
+	if (ana.cutflow.getCut("SRSSeelljjbbFullDD").pass)
+	  {
+	    std::cout << std::endl;
+	    std::cout << " www.nb() " << www.nb() << "\t";
+	    std::cout << " Lambdas::GetMbb() " << Lambdas::GetMbb() << endl;
+	  }
         // if (ana.cutflow.getCut("SRSSmmFull").pass)
         // {
         //     std::cout << std::endl;
@@ -1827,3 +1864,4 @@ int main(int argc, char** argv)
     ana.cutflow.saveOutput();
 
 }
+
