@@ -156,6 +156,8 @@ namespace Lambdas
     std::function<float()> LowMjj(Variation::ExpSyst expsyst=Variation::JES, Variation::Var var=Variation::Nominal); // Low Mjj
     std::function<float()> HighMjj(Variation::ExpSyst expsyst=Variation::JES, Variation::Var var=Variation::Nominal); // High Mjj
     std::function<float()> TwoBJets(Variation::ExpSyst expsyst=Variation::JES, Variation::Var var=Variation::Nominal);
+    float GetMbb();
+    void GetBJetsIndex(int &leading_index, int &sub_leading_index);
 
     std::function<float()> MjjIn(Variation::ExpSyst expsyst=Variation::JES, Variation::Var var=Variation::Nominal); // Mjj-in ee
     std::function<float()> MjjOut(Variation::ExpSyst expsyst=Variation::JES, Variation::Var var=Variation::Nominal); // Mjj-out ee
